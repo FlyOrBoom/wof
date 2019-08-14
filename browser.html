@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html, body{
+        margin:0;
+        width:100%;
+        height:100%;
+        overflow:hidden;
+        font-family:roboto,sans-serif;
+        background:#408;
+      }
+      *{
+        transition-duration:.1s;
+      }
+      :hover,:focus{
+        transition-duration:.1s;
+      }
+      @font-face {
+        font-family: roboto;
+        src: url(roboto.ttf)
+      }
+      #topchrome{
+        width:100%;
+        height:2rem;
+        color:#fff;
+        margin-top:-1.8rem;
+        transition-duration:0;
+      }
+      #topchrome:hover,#topchrome:focus-within{
+        margin-top:0;
+      }
+      #topchrome>*,#topchrome-tools>*{
+        position:absolute;
+      }
+      #topchrome-highlight{
+        pointer-events:none;
+        left:-100%;
+        width:200%;
+        height:2rem;
+        background-color:rgba(0,0,0,0);
+        background-image:linear-gradient(90deg,rgba(0,0,0,0) 33.3%,#808 50%,rgba(0,0,0,0) 66.7%);
+        background-blend-mode:multiply;
+      }
+      #topchrome-tools{
+        width:100%;
+        height:2rem;
+        -webkit-mask-image:url(mask.svg);
+        -webkit-mask-size:200%;
+      }
+      #omnibox{
+        position:absolute;
+        padding:0.25rem;
+        font-size:1.5rem;
+        background:none;
+        border:none;
+        color:inherit;
+        left:1.1rem;
+        width:calc(50vw - 1.1rem);
+        height:1.5rem;
+      }
+      #omnibox:focus{
+        outline:none;
+        min-width:20rem;
+      }
+      #omnibox::placeholder{
+        color:inherit;
+        opacity:.8;
+        font-size:1.25rem;
+      }
+      #omnibox::selection{
+        background:#80f;
+      }
+      #submit{
+        background:none;
+        border:none;
+        color:inherit;
+        font-size:2rem;
+        width:2rem;
+        height:2rem;
+        margin-left:0;
+        cursor:pointer;
+        border-radius:1rem;
+        background-image:linear-gradient(45deg,rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%),linear-gradient(315deg,rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%);
+        clip-path:inset(0 .98rem 0 0);
+      }
+      #webview-container{
+        margin-top:0;
+        width:100%;
+        height:calc(100% - 0.2rem);
+      }
+      iframe{
+        position:fixed;
+        bottom:0;
+        width:100%;
+        height:calc(100% - 2rem);
+        border:none;
+      }
+      webview{
+        width:100%;
+        height:100%;
+        display:none;
+      }
+      .current-webview{
+        display:block;
+      }
+      #tab-container{
+        width:calc(50vw - 8rem);
+        min-width:2rem;
+        height:2.25rem;
+        right:8rem;
+        overflow-y:hidden;
+        overflow-x:scroll;
+        white-space:nowrap;
+        text-align:right;
+      }
+      #tab-container::-webkit-scrollbar{
+        height:.25rem;
+      }
+      #tab-container::-webkit-scrollbar-thumb{
+        background:#fff;
+      }
+      #tab-container>*{
+        width:1.5rem;
+        height:1.5rem;
+        margin:.25rem .125rem 0 .125rem;
+        cursor:pointer;
+        display:inline-block;
+        border:#fff solid .1rem;
+        
+      }
+      #tab-container>*:hover{
+        background:#fff;
+      }
+      #tab-new{
+        margin-top:.2rem;
+        right:6rem;
+        width:1.6rem;
+        height:1.6rem;
+        background-image:linear-gradient(rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%),linear-gradient(90deg,rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%);
+      }
+      #tab-new:hover,#tab-new:focus{
+        cursor:pointer;
+      }
+      #close{
+        margin-top:0;
+        right:0;
+        width:2rem;
+        height:2rem;
+        border-radius:1rem;
+        background-image:linear-gradient(45deg,rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%),linear-gradient(315deg,rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%);
+        cursor:pointer;
+      }
+      .current-tab{
+        opacity:1.5;
+        background:#fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='topchrome'>
+      <div id='topchrome-highlight'></div>
+      <div id='topchrome-tools'>
+        <form id='search'>
+          <input id='omnibox' placeholder='Search DuckDuckGo or type a URL' spellcheck='false' onclick='this.select();'>
+          <input id='submit' type='submit' title='go' value=''>
+        </form>
+        <div id='tab-container'></div>
+        <div id='tab-new'></div>
+        <div id='close'></div>
+      </div>
+    </div>
+    <div id='webview-container'>
+      <iframe src='home.html'></iframe>
+    </div>
+    <script src='browser.js'></script>
+  </body>
+</html>
