@@ -1,7 +1,7 @@
 {
-  "name": "Wof",
-  "description": "Lightweight gaming browser with built-in minigames and Discord integration",
-  "version": "0.5",
+  "name": "Woffle",
+  "description": "Lightweight browser with built-in minigames. Discord integration coming soon",
+  "version": "1.0",
   "manifest_version": 2,
   "app": {
     "background": {
@@ -9,6 +9,14 @@
     }
   },
   "icons": {"256": "256.png" },
+  "webview": {
+    "partitions": [
+      {
+        "name": "trusted",
+        "accessible_resources": ["*.html", "*.png", "*.js"]
+      }
+    ]
+  },
   
   "permissions": [
   "audioCapture",
