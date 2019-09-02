@@ -11,6 +11,7 @@ html, body{
   background:#408;
 }
 *{
+  outline:none;
   transition-duration:.1s;
 }
 :hover,:focus{
@@ -31,7 +32,6 @@ html, body{
 #topchrome{
   width:100%;
   height:2rem;
-  background:#808;
   color:#fff;
   margin-top:-1.8rem;
   transition-duration:0;
@@ -39,8 +39,9 @@ html, body{
 #topchrome:hover,#topchrome:focus-within{
   margin-top:0;
 }
-#topchrome>*,#topchrome-tools>*{
+#topchrome>*{
   position:absolute;
+  
 }
 #topchrome-highlight,#topchrome-textlight{
   pointer-events:none;
@@ -50,53 +51,145 @@ html, body{
   height:2rem;
 }
 #topchrome-highlight{
-  background-image:linear-gradient(90deg,#408 33.3%,transparent 50%,#408 66.7%);
-  mix-blend-mode:darken;
+  background-image:linear-gradient(
+  90deg,
+  transparent 33.3%,
+  #80f 50%,
+  transparent 66.7%
+  );
 }
 #topchrome-textlight{
-  background-image:linear-gradient(90deg,#4088 33.3%,transparent 50%,#4088 66.7%);
-  mix-blend-mode:darken;
+  background-image:linear-gradient(
+  90deg,
+  #4088 33.3%,
+  transparent 50%,
+  #4088 66.7%
+  );
 }
+
 #topchrome-tools{
+  width:100vw;
+  height:2rem;
+  display:flex;
+}
+  #topchrome-tools>*{
+    height:100%;
+  }
+  #nav-back,#nav-forward,#submit{
+    flex:0 1 2rem;
+    background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
+    clip-path:inset(0 1rem 0 0);
+    border-radius:1rem;
+  }
+  #nav-back,#nav-forward,#submit,#tab-container>*,#tab-new,#close{
+    opacity:.6;
+    cursor:pointer;
+  }
+  #nav-back:hover,#nav-forward:hover,#submit:hover,#tab-container>*:hover,#tab-new:hover,#close:hover{
+    opacity:1;
+  }
+  #nav-back{
+    margin-left:-0.8rem;
+    transform:rotate(180deg);
+  }
+  #nav-forward{
+    margin-left:-.3rem;
+    margin-right:-1.3rem;
+  }
+  #search{
+    flex:1% 1 2;
+    
+    display:flex;
+  }
+    #submit{
+      background:none;
+      border:none;
+      background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
+      
+    }
+    #omnibox{
+      flex:1 1 auto;
+      padding:0.25rem;
+      font-size:1.5rem;
+      background:none;
+      border:none;
+      color:inherit;
+      height:1.5rem;
+      margin-left:-1rem;
+    }
+      #omnibox:focus{
+        outline:none;
+        min-width:20rem;
+      }
+      #omnibox::placeholder{
+        color:#fffa;
+        font-size:1.25rem;
+      }
+      #omnibox::selection{
+        background:#80f;
+      }
+  
+  #tab-container{
+    flex:0 1 auto;
+    margin-right:.1rem;
+    overflow-y:hidden;
+    overflow-x:scroll;
+    white-space:nowrap;
+    text-align:right;
+  }
+
+    #tab-container>*{
+      width:1.5rem;
+      height:1.5rem;
+      margin:.175rem .0875rem;
+      display:inline-block;
+      border:#fff solid .1rem;
+    }
+      #tab-container>*:hover{
+        background-color:#fff;
+        right:6rem;
+      }
+      .current-tab{
+        opacity:1.5;
+        background-color:#fff;
+      }
+      .current-tab:hover{
+        background-image:linear-gradient(45deg,transparent 46%,#80f 46%,#80f 54%,transparent 54%),linear-gradient(315deg,transparent 46%,#80f 46%,#80f 54%,transparent 54%);
+      }
+    
+  #tab-new{
+    margin-top:.2rem;
+    width:1.6rem;
+    height:1.6rem;
+    background-image:linear-gradient(rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%),linear-gradient(90deg,rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%);
+  }
+  
+  #close{
+    
+  }
+    #close,#close-icon{
+      margin-top:0;
+      width:2rem;
+      height:100%;
+    }
+    #close-icon{
+      border-radius:1rem;
+      background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
+    }
+
+#loadwrapper{
+  position:fixed;
   width:100%;
-  height:2rem;
+  height:100%;
+  top:0;
+  background:#408;
+  animation:1s fadeIn ease 1s forwards;
+  pointer-events:none;
 }
-#omnibox{
-  position:absolute;
-  padding:0.25rem;
-  font-size:1.5rem;
-  background:none;
-  border:none;
-  color:inherit;
-  left:1.1rem;
-  width:calc(50vw - 1.1rem);
-  height:1.5rem;
+.transparent{
+  opacity:0;
 }
-#omnibox:focus{
-  outline:none;
-  min-width:20rem;
-}
-#omnibox::placeholder{
-  color:inherit;
-  opacity:.8;
-  font-size:1.25rem;
-}
-#omnibox::selection{
-  background:#80f;
-}
-#submit{
-  background:none;
-  border:none;
-  color:inherit;
-  font-size:2rem;
-  width:2rem;
-  height:2rem;
-  margin-left:0;
-  cursor:pointer;
-  border-radius:1rem;
-  background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
-  clip-path:inset(0 .98rem 0 0);
-}
+
 #webview-container{
   margin-top:0;
   width:100%;
@@ -117,71 +210,69 @@ webview{
 .current-webview{
   display:block;
 }
-#tab-container{
-  width:calc(50vw - 8rem);
-  min-width:2rem;
-  height:2.25rem;
-  right:8rem;
-  overflow-y:hidden;
-  overflow-x:scroll;
-  white-space:nowrap;
-  text-align:right;
+
+#loadwrapper.loading{
+  opacity:0;
+  transition-duration:.5s;
 }
-#tab-container::-webkit-scrollbar{
-  height:.25rem;
+#loading{
+  width:80vh;
+  height:80vh;
+  margin-left:calc(50vw - 40vh);
+  margin-top:10vh;
 }
-#tab-container::-webkit-scrollbar-thumb{
-  background:#fff;
+@keyframes loading{
+  0%{cy:50;r:10;stroke-width:5;opacity:0}
+  50%{opacity:1}
+  100%{cy:125;r:80;stroke-width:20;opacity:0}
 }
-#tab-container>*{
-  width:1.5rem;
-  height:1.5rem;
-  margin:.25rem .125rem 0 .125rem;
-  cursor:pointer;
-  display:inline-block;
-  border:#fff solid .1rem;
+@keyframes wave{
+  0%{box-shadow:0 0 100px #80f}
+  50%{box-shadow:0 0 0px #80f}
+  100%{box-shadow:0 0 100px #80f}
 }
-#tab-container>*:hover{
-  background-color:#fff;
-#tab-container>*:hover{
-  background-color:#fff;
-  margin-top:.2rem;
-  right:6rem;
-  background-image:linear-gradient(45deg,transparent 46%,#808 46%,#808 54%,transparent 54%),linear-gradient(315deg,transparent 46%,#808 46%,#808 54%,transparent 54%);
+@keyframes fadeIn{
+  0%{opacity:1}
+  100%{opacity:0;}
 }
-  background-image:linear-gradient(transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(90deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
+#circles>*{
+  cx:100;
+  animation:6s loading infinite linear;
 }
-#tab-new:hover,#tab-new:focus{
-  cursor:pointer;
-}
-#close,#close-icon{
-  margin-top:0;
-  right:0;
-  width:2rem;
-  height:2rem;
-  cursor:pointer;
-}
-#close-icon{
-  border-radius:1rem;
-  background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
-}
-.current-tab{
-  opacity:1.5;
-  background-color:#fff;
-  background-image:linear-gradient(45deg,transparent 46%,transparent 46%,transparent 54%,transparent 54%),linear-gradient(315deg,transparent 46%,transparent 46%,transparent 54%,transparent 54%);
-}
-.current-tab:hover{
-  background-image:linear-gradient(45deg,transparent 46%,#808 46%,#808 54%,transparent 54%),linear-gradient(315deg,transparent 46%,#808 46%,#808 54%,transparent 54%);
-}
+#c1{animation-delay:-6s}
+#c2{animation-delay:-4s}
+#c3{animation-delay:-2s}
     </style>
   </head>
   <body>
+    <div id='loadwrapper'>
+      <svg id='loading' viewbox='0 0 200 200'>
+      <defs>
+        <linearGradient id="g1" gradientTransform="rotate(90)">
+          <stop offset="5%"  stop-color="#80f" />
+          <stop offset="80%" stop-color="#80f0" />
+        </linearGradient>
+        <linearGradient id="g2" gradientTransform="rotate(90)">
+          <stop offset="5%"  stop-color="#80f" />
+          <stop offset="120%" stop-color="#80f0" />
+        </linearGradient>
+      </defs>
+      <g id='circles' fill='none' stroke='url(#g1)'>
+      <circle id='c1'/>
+      <circle id='c2'/>
+      <circle id='c3'/>
+      </g>
+      <path id='ship' d='M100 100l20 40c-16 10 -24 10 -40 0z' fill='url(#g2)'/>
+    </svg>
+    </div>
     <div id='topchrome'>
       <div id='topchrome-highlight'></div>
       <div id='topchrome-tools'>
+        <div id='nav-back'></div>
+        <div id='nav-forward'></div>
         <form id='search'>
-          <input id='omnibox' placeholder='Search DuckDuckGo or type a URL' spellcheck='false'>
-          <input id='submit' type='submit' title='go' value=''>
+          <input id='submit' type='submit' data-title='go' value=''>
+          <input id='omnibox' placeholder='Search DuckDuckGo or type in a URL' spellcheck='false'>
         </form>
         <div id='tab-container'></div>
         <div id='tab-new'></div>

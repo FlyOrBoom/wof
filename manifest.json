@@ -1,7 +1,7 @@
 {
   "name": "Woffle",
   "description": "Lightweight browser with built-in minigames. Discord integration coming soon",
-  "version": "1.0",
+  "version": "1.2",
   "manifest_version": 2,
   "app": {
     "background": {
