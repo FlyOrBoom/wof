@@ -1,23 +1,26 @@
-var omnibox = document.getElementById("omnibox"),
-    search = document.getElementById("search"),
+var doc = document;
+    omnibox = doc.getElementById("omnibox"),
+    search = doc.getElementById("search"),
     tick = 0,
-    navBack = document.getElementById("nav-back"),
-    navForward = document.getElementById("nav-forward"),
-    webviewContainer = document.getElementById('webview-container'),
+    navBack = doc.getElementById("nav-back"),
+    navForward = doc.getElementById("nav-forward"),
+    webviewContainer = doc.getElementById('webview-container'),
     webview = [],
-    tabContainer = document.getElementById('tab-container'),
+    tabContainer = doc.getElementById('tab-container'),
     tab = [],
-    tabNew = document.getElementById('tab-new'),
+    tabNew = doc.getElementById('tab-new'),
     current = 0,
     opened = [0],
-    topchrome = document.getElementById("topchrome"),
-    highlight = document.getElementById('topchrome-highlight'),
-    textlight = document.getElementById('topchrome-textlight'),
-    toolbar = document.getElementById('topchrome-tools'),
-    loadwrapper = document.getElementById('loadwrapper'),
-    tip = ['Made with <3 from Arcadia High','Alt+W to close current tab','Ctrl+alt+W to erase this window\'s history','Alt+N to open new tab','Ctrl+alt+N to open new window'],
+    topchrome = doc.getElementById("topchrome"),
+    highlight = doc.getElementById('topchrome-highlight'),
+    textlight = doc.getElementById('topchrome-textlight'),
+    toolbar = doc.getElementById('topchrome-tools'),
+    tip = ['Made with <3 from Arcadia High','Alt+W to close current tab','Ctrl+alt+W to erase this window\'s history','Alt+T to open new tab','Alt+N to open new window'],
     tiptick=0,
-    closeWindow = document.getElementById('close');
+    closeWindow = doc.getElementById('close'),
+    popup = doc.getElementById('popup'),
+    popups = doc.getElementsByClassName('popup');
+
 
 function setCurrent(k){
   console.log('function setCurrent('+k+')');
@@ -28,10 +31,10 @@ function setCurrent(k){
   omnibox.value=webview[current].src;
   checkHome();
   if(tab.length>1){
-    for(var i = 0;i<tab.length;i++){
+    for(let i=0;i<tab.length;i++){
       if(i!==k){
         webview[i].classList = '';
-        tab[i].classList = '';
+        tab[i].classList='';
         console.log('Deactivated #webview'+i+' and #tab'+i);
       }
     }
@@ -46,16 +49,19 @@ function omniUrl(){
 function closeTab(){
   console.log('function CloseTab('+current+')');
   if(webviewContainer.childElementCount>1){
-    webview[current].remove();
-    tab[current].remove();
-    webview[current]=false;
-    tab[current]=false;
-    if(current){
-      while(!(webview[current])){
-        current--;
+    tab[current].classList.add('tabClose');
+    setTimeout(function(){
+      webview[current].remove();
+      tab[current].remove();
+      tab[current]=false;
+      webview[current]=false;
+      if(current){
+        while(!(webview[current])){
+          current--;
+        }
+        setCurrent(current);
       }
-      setCurrent(current);
-    }
+    },100);
   }else{
     window.close();
   }
@@ -67,15 +73,17 @@ function newTab(url){
   
   var j = tab.length;
   
-  webview[j] = document.createElement('webview');
+  webview[j] = doc.createElement('webview');
   // webview[j].setAttribute('partition',('trusted-'+(Math.random()*10)));
   webview[j].setAttribute('partition','trusted');
   webview[j].id = 'webview'+j;
   webview[j].currentUrl='';
+  webview[j].setAttribute('allowtransparency','on');
   webviewContainer.appendChild(webview[j]);
 
-  tab[j] = document.createElement('div');
+  tab[j] = doc.createElement('div');
   tab[j].id = 'tab'+j;
+  tab[j].tabindex = 10+j;
   tabContainer.appendChild(tab[j]);
   setCurrent(j);
   tab[j].addEventListener('click',function(){
@@ -97,19 +105,39 @@ function newTab(url){
     omniUrl();
   });
   webview[j].addEventListener('loadstop',function(){
-    loadwrapper.classList.remove('loading');
+    this.insertCSS({
+      code: 'html{background:#fff!important;}',
+      runAt: 'document_start'  // and added this
+    });
     omniUrl();
-    webview[j].currentUrl=webview[j].src;
+    this.currentUrl=this.src;
   });
   webview[j].addEventListener("permissionrequest", function(e) {
     e.request.allow();
   });
   webview[j].addEventListener("newwindow", function(e) {
-    newTab();
-    webview[current].src=e.targetUrl;
+    for(let i=0;i<3;i++){
+      popup.innerHTML='Open '+String(e.targetUrl).substr(0,50)+' in new tab? Click to confirm.';
+      popups[i].style.animationPlayState='running';
+      setTimeout(function(){
+        popups[i].style.animationPlayState='paused';
+        popups[i].style.display='block';
+        popup.onclick='';
+        NewwWindow.discard();
+      },4000);
+    }
+    popup.onclick=function(){
+      newTab();
+      webview[current].src=e.targetUrl;
+      for(let i=0;i<3;i++){
+        popups[i].style.display='none';
+      }
+    };
   });
   
   setTimeout(function(){webview[0].src=url;},1);
+  
+  omnibox.focus();
 }
 
 function checkHome(){
@@ -119,7 +147,7 @@ function checkHome(){
 }
 
 function clearAllHistory(){
-  for(i=0;i<tab.length;i++){
+  for(let i=0;i<tab.length;i++){
     webview[i].clearData(
       {since:0},
       {appcache:true,cache:true,cookies:true,sessionCookies:true,persistentCookies:true,fileSystems:true,indexedDB:true,localStorage:true,webSQL:true},
@@ -130,7 +158,6 @@ function clearAllHistory(){
 
 newTab('offline/home.html');
 checkHome();
-omnibox.focus();
 
 omnibox.placeholder='Search DuckDuckGo or type in a URL\u2003\u2003\u2003'+tip[0];
 setInterval(function(){
@@ -143,16 +170,13 @@ navBack.onclick = function(){
   webview[current].back();
 };
 navForward.onclick = function(){
-  webview[current].back();
+  webview[current].forward();
 };
 
-omnibox.onclick = function(){
+omnibox.onfocus = function(){
   omnibox.select();
 };
 tabNew.onclick = function(){newTab();webview[current].src='offline/home.html';};
-omnibox.onclick = function(){
-  omnibox.select();
-};
 search.onsubmit = function() {
   var e = omnibox.value;
   if(e){
@@ -169,7 +193,7 @@ search.onsubmit = function() {
   }
   omnibox.value=e;
 };
-document.onmousemove = function (e){
+window.onmousemove = function (e){
   highlight.style.transform = 'translate('+e.pageX+'px,0)';
   textlight.style.transform = 'translate('+e.pageX+'px,0)';
   omnibox.focus();
@@ -179,31 +203,28 @@ closeWindow.onclick = function(){
 };
 
 //keyboard shortcuts
-document.addEventListener('keyup',
+window.addEventListener('keyup',
 function(e){
   if(e.altKey){
-    if(e.key=='w'){
+    if(e.key==='w'){
       if(e.ctrlKey){
         clearAllHistory();
       }else{
        closeTab();
       }
-    }
-    if(e.key=='n'){
-      if(e.ctrlKey){
-        chrome.app.window.create('browser.html', {
-          id:String(Math.random()),
-          state:'maximized',
-          frame:'none',
-          innerBounds: {
-              minWidth: 400,
-              minHeight: 300
-          }
-        });
-      }else{
-        newTab();
-        webview[current].src='offline/home.html';
-      }
+    }else if(e.key==='n'){
+      chrome.app.window.create('browser.html', {
+        id:String(Math.random()),
+        state:'maximized',
+        frame:'none',
+        innerBounds: {
+            minWidth: 400,
+            minHeight: 300
+        }
+      });
+    }else if(e.key==='t'){
+      newTab();
+      webview[current].src='offline/home.html';
     }
   }
 },false);
