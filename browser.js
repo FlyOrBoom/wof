@@ -1,7 +1,6 @@
-var doc = document;
+var doc = document,
     omnibox = doc.getElementById("omnibox"),
-    search = doc.getElementById("search"),
-    tick = 0,
+    search = doc.getElementById("omnibox-wrapper"),
     navBack = doc.getElementById("nav-back"),
     navForward = doc.getElementById("nav-forward"),
     webviewContainer = doc.getElementById('webview-container'),
@@ -10,23 +9,18 @@ var doc = document;
     tab = [],
     tabNew = doc.getElementById('tab-new'),
     current = 0,
-    opened = [0],
     topchrome = doc.getElementById("topchrome"),
-    highlight = doc.getElementById('topchrome-highlight'),
-    textlight = doc.getElementById('topchrome-textlight'),
-    toolbar = doc.getElementById('topchrome-tools'),
-    tip = ['Made with <3 from Arcadia High','Alt+W to close current tab','Ctrl+alt+W to erase this window\'s history','Alt+T to open new tab','Alt+N to open new window'],
-    tiptick=0,
     closeWindow = doc.getElementById('close'),
-    popup = doc.getElementById('popup'),
-    popups = doc.getElementsByClassName('popup');
+    snackbar = doc.getElementById('snackbar'),
+    tick = {invert:0,fog:0},
+    root = doc.documentElement;
 
 
 function setCurrent(k){
   console.log('function setCurrent('+k+')');
   console.log('Set #webview'+k+' as current tab');
   webview[k].classList='current-webview';
-  tab[k].classList='current-tab';
+  tab[k].classList.add('current');
   current=k;
   omnibox.value=webview[current].src;
   checkHome();
@@ -34,7 +28,7 @@ function setCurrent(k){
     for(let i=0;i<tab.length;i++){
       if(i!==k){
         webview[i].classList = '';
-        tab[i].classList='';
+        tab[i].classList.remove('current');
         console.log('Deactivated #webview'+i+' and #tab'+i);
       }
     }
@@ -49,18 +43,21 @@ function omniUrl(){
 function closeTab(){
   console.log('function CloseTab('+current+')');
   if(webviewContainer.childElementCount>1){
-    tab[current].classList.add('tabClose');
+    tab[current].classList.add('close');
     setTimeout(function(){
       webview[current].remove();
       tab[current].remove();
       tab[current]=false;
       webview[current]=false;
-      if(current){
-        while(!(webview[current])){
+      while(!(webview[current])){
+        console.log(current);
+        if(current<1){
+          current+=tab.length;
+        }else{
           current--;
         }
-        setCurrent(current);
       }
+      setCurrent(current);
     },100);
   }else{
     window.close();
@@ -83,8 +80,9 @@ function newTab(url){
 
   tab[j] = doc.createElement('div');
   tab[j].id = 'tab'+j;
+  tab[j].classList.add('tab','button');
   tab[j].tabindex = 10+j;
-  tabContainer.appendChild(tab[j]);
+  tabContainer.insertAdjacentElement('afterbegin',tab[j]);
   setCurrent(j);
   tab[j].addEventListener('click',function(){
     if(j===current){
@@ -94,7 +92,7 @@ function newTab(url){
     }
   });
   
-  webview[j].onmousemove = function(){
+  webview[j].onmousemove = function(e){
     webview[j].focus();
   };
   webview[j].addEventListener('loadstart',function(e){
@@ -105,10 +103,7 @@ function newTab(url){
     omniUrl();
   });
   webview[j].addEventListener('loadstop',function(){
-    this.insertCSS({
-      code: 'html{background:#fff!important;}',
-      runAt: 'document_start'  // and added this
-    });
+    this.insertCSS({code:'body::before{background-color:#fff}'});
     omniUrl();
     this.currentUrl=this.src;
   });
@@ -116,22 +111,16 @@ function newTab(url){
     e.request.allow();
   });
   webview[j].addEventListener("newwindow", function(e) {
-    for(let i=0;i<3;i++){
-      popup.innerHTML='Open '+String(e.targetUrl).substr(0,50)+' in new tab? Click to confirm.';
-      popups[i].style.animationPlayState='running';
-      setTimeout(function(){
-        popups[i].style.animationPlayState='paused';
-        popups[i].style.display='block';
-        popup.onclick='';
-        NewwWindow.discard();
-      },4000);
-    }
-    popup.onclick=function(){
+    e.window.discard();
+    snackbar.innerHTML='Open '+String(e.targetUrl).substr(0,50)+' in new tab? Click to confirm.';
+    snackbar.focus({preventScroll:true});
+    setTimeout(function(){
+      snackbar.blur();
+    },4000);
+    snackbar.onclick=function(){
       newTab();
       webview[current].src=e.targetUrl;
-      for(let i=0;i<3;i++){
-        popups[i].style.display='none';
-      }
+      snackbar.blur();
     };
   });
   
@@ -159,13 +148,6 @@ function clearAllHistory(){
 newTab('offline/home.html');
 checkHome();
 
-omnibox.placeholder='Search DuckDuckGo or type in a URL\u2003\u2003\u2003'+tip[0];
-setInterval(function(){
-  tiptick++;
-  omnibox.placeholder='Search DuckDuckGo or type in a URL\u2003\u2003\u2003'+tip[tiptick%5];
-},3000);
-
-
 navBack.onclick = function(){
   webview[current].back();
 };
@@ -173,9 +155,6 @@ navForward.onclick = function(){
   webview[current].forward();
 };
 
-omnibox.onfocus = function(){
-  omnibox.select();
-};
 tabNew.onclick = function(){newTab();webview[current].src='offline/home.html';};
 search.onsubmit = function() {
   var e = omnibox.value;
@@ -194,8 +173,7 @@ search.onsubmit = function() {
   omnibox.value=e;
 };
 window.onmousemove = function (e){
-  highlight.style.transform = 'translate('+e.pageX+'px,0)';
-  textlight.style.transform = 'translate('+e.pageX+'px,0)';
+  topchrome.style.backgroundPosition = (100*(window.innerWidth-e.pageX)/window.innerWidth)+'%';
   omnibox.focus();
 };
 closeWindow.onclick = function(){
@@ -203,7 +181,7 @@ closeWindow.onclick = function(){
 };
 
 //keyboard shortcuts
-window.addEventListener('keyup',
+window.addEventListener('keydown',
 function(e){
   if(e.altKey){
     if(e.key==='w'){
@@ -215,7 +193,7 @@ function(e){
     }else if(e.key==='n'){
       chrome.app.window.create('browser.html', {
         id:String(Math.random()),
-        state:'maximized',
+        state:'fullscreen',
         frame:'none',
         innerBounds: {
             minWidth: 400,
@@ -225,6 +203,38 @@ function(e){
     }else if(e.key==='t'){
       newTab();
       webview[current].src='offline/home.html';
+    }else if(e.key==='/'){
+      if(tick.fog){
+        doc.body.classList.remove('blur');
+        tick.fog--;
+      }else{
+        doc.body.classList.add('blur');
+        tick.fog++;
+      }
+    }else if(e.key==='i'){
+      if(tick.invert){
+        root.style.setProperty('--main','#fff');
+        root.style.setProperty('--highlight','#80f');
+        root.style.setProperty('--halflight','#408');
+        root.style.setProperty('--background','#204');
+        tick.invert--;
+      }else{
+        root.style.setProperty('--main','#204');
+        root.style.setProperty('--highlight','#648');
+        root.style.setProperty('--halflight','#fff');
+        root.style.setProperty('--background','#fff');
+        tick.invert++;
+      }
     }
   }
 },false);
+
+setInterval(function checkFullscreen(){
+  if(window.screen.width===window.innerWidth&&window.screen.height===window.innerHeight){
+    topchrome.classList.add('fullscreen');
+    webviewContainer.classList.add('fullscreen');
+  }else{
+    topchrome.classList.remove('fullscreen');
+    webviewContainer.classList.remove('fullscreen');
+  }
+},10);

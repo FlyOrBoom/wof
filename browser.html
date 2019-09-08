@@ -2,22 +2,31 @@
 <html>
   <head>
     <style>
-html, body{
+:root{
+  --main:#fff;
+  --highlight:#80f;
+  --halflight:#408;
+  --background:#204;
+}
+html,body{
   margin:0;
-  width:100%;
-  height:100%;
+  width:100vw;
+  height:100vh;
   overflow:hidden;
   font-family:manjari,sans-serif;
-  background:#204;
+  background:var(--background);
   background-image:url(#loading);
-  color:#fff;
+  color:var(--main);
+}
+body.blur{
+  filter:blur(2rem);
 }
 *{
-  outline:none;
   transition-duration:.1s;
   box-sizing:border-box;
 }
 :hover,:focus{
+  outline:none;
   transition-duration:.1s;
 }
 @font-face {
@@ -32,65 +41,34 @@ html, body{
 	font-weight: bold;
 	font-style: normal;
 }
-#topchrome{
+#topchrome,#topchrome.fullscreen:hover,#topchrome.fullscreen:focus-within{
   width:100%;
   height:2rem;
-  margin-top:-1.8rem;
   transition-duration:0;
-}
-#topchrome:hover,#topchrome:focus-within{
   margin-top:0;
+  display:flex;
+  background-image:linear-gradient(
+  90deg,
+  var(--background) 33.3%,
+  var(--halflight) 50%,
+  var(--background) 66.7%
+  );
+  background-size:200% 100%;
+}
+#topchrome.fullscreen{
+  margin-top:-1.8rem;
 }
 #topchrome>*{
-  position:absolute;
-  
+  height:inherit;
+  width:2rem;
 }
-#topchrome-highlight,#topchrome-textlight,#popup-highlight,#popup-textlight{
-  pointer-events:none;
-  background-color:transparent;
-  left:-100%;
-  width:200%;
-}
-#topchrome-highlight,#topchrome-textlight{
-  height:2rem;
-}
-#topchrome-highlight,#popup-highlight{
-  background-image:linear-gradient(
-  90deg,
-  #204 33.3%,
-  #80f 50%,
-  #204 66.7%
-  );
-}
-#topchrome-textlight,#popup-textlight{
-  background-image:linear-gradient(
-  90deg,
-  #2049 33.3%,
-  transparent 50%,
-  #2049 66.7%
-  );
-}
-
-#topchrome-tools{
-  width:100vw;
-  height:2rem;
-  display:flex;
-}
-  #topchrome-tools>*{
-    height:100%;
+  .button.cross{
+    background:none;
+    background-image:linear-gradient(45deg,transparent 48%,var(--main) 48%,var(--main) 52%,transparent 52%),linear-gradient(315deg,transparent 48%,var(--main) 48%,var(--main) 52%,transparent 52%);
+    background-clip:content-box;
   }
-  #nav-back,#nav-forward,#submit{
-    flex:0 1 2rem;
-    background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
-    clip-path:inset(0 1rem 0 0);
-    border-radius:1rem;
-  }
-  #nav-back,#nav-forward,#submit,#tab-container>*,#tab-new,#close{
-    opacity:1;
-    cursor:pointer;
-  }
-  #nav-back:hover,#nav-forward:hover,#submit:hover,#tab-container>*:hover,#tab-new:hover,#close:hover{
-    opacity:.6;
+  .button.chevron{
+    padding:.3rem 1rem .3rem .3rem;
   }
   #nav-back{
     margin-left:-.8rem;
@@ -98,19 +76,14 @@ html, body{
   }
   #nav-forward{
     margin-left:-.3rem;
-    margin-right:-1.3rem;
+    margin-right:-1.2rem;
   }
-  #search{
-    flex:1% 1 2;
-    display:flex;
+  #omnibox-wrapper{
+    flex:1 1 0;
+    width:auto;
   }
-    #submit{
-      background:none;
-      border:none;
-      background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
-    }
     #omnibox{
-      flex:1 1 auto;
+      width:100%;
       padding:1.2rem .25rem;
       font-size:1.5rem;
       background:none;
@@ -121,41 +94,46 @@ html, body{
       font-family:manjari;
       font-weight:bold;
       overflow:hidden;
+      clip-path: inset(0 0 .6rem 0);
     }
       #omnibox:focus{
-        outline:none;
         min-width:20rem;
       }
       #omnibox::placeholder{
-        color:inherit;
+        color:var(--highlight);
         font-size:1.25rem;
       }
       #omnibox::selection{
-        color:#408;
+        background-color:var(--main);
+        color:var(--background);
       }
   
   #tab-container{
-    flex:0 1 auto;
+    width:auto;
+    max-width:calc(100vw - 30rem);
     margin-right:.1rem;
+    margin-left:-1rem;
     overflow-y:hidden;
     overflow-x:scroll;
     white-space:nowrap;
     text-align:right;
+    direction:rtl;
   }
 
-    #tab-container>*{
+    .tab.button{
       width:1.75rem;
       height:1.75rem;
       margin:.25rem .0875rem;
       display:inline-block;
-      border:#fff solid .1rem;
+      border:var(--main) solid .1rem;
       animation:tabOpen .1s forwards;
+      background-clip:border-box;
     }
-      #tab-container>*.tabClose{
+      .tab.close{
         animation:tabClose .1s forwards;
       }
-      #tab-container>*:hover{
-        background-color:#fff;
+      .tab:hover{
+        background-color:var(--main);
         right:6rem;
       }
       @keyframes tabOpen{
@@ -166,53 +144,41 @@ html, body{
         0%{margin-left:.0875rem}
         100%{margin-left:-1.5rem}
       }
-      .current-tab{
-        opacity:1.5;
-        background-color:#fff;
+      .current.tab{
+        background-color:var(--main);
       }
-      .current-tab:hover{
-        background-image:linear-gradient(45deg,transparent 46%,#80f 46%,#80f 54%,transparent 54%),linear-gradient(315deg,transparent 46%,#80f 46%,#80f 54%,transparent 54%);
+      .current.tab:hover{
+        background-image:linear-gradient(45deg,transparent 46%,var(--halflight) 46%,var(--halflight) 54%,transparent 54%),linear-gradient(135deg,transparent 46%,var(--halflight) 46%,var(--halflight) 54%,transparent 54%);
       }
     
+  .button{
+    padding:.3rem;
+    background-color:none;
+    border:none;
+    background-clip:content-box;
+    cursor:pointer;
+    flex:none;
+  }
+  .button:hover{
+    opacity:.6;
+  }
+  .hov-expand:hover{
+    background-clip:border-box;
+  }
   #tab-new{
-    margin-top:.2rem;
-    width:1.6rem;
-    height:1.6rem;
-    background-image:linear-gradient(rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%),linear-gradient(90deg,rgba(0,0,0,0) 48%,#fff 48%,#fff 52%,rgba(0,0,0,0) 52%);
+    background-image:linear-gradient(rgba(0,0,0,0) 48%,var(--main) 48%,var(--main) 52%,rgba(0,0,0,0) 52%),linear-gradient(90deg,rgba(0,0,0,0) 48%,var(--main) 48%,var(--main) 52%,rgba(0,0,0,0) 52%);
   }
-  
-  #close{
-    
-  }
-    #close,#close-icon{
-      margin-top:0;
-      width:2rem;
-      height:100%;
-    }
-    #close-icon{
-      border-radius:1rem;
-      background-image:linear-gradient(45deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%),linear-gradient(315deg,transparent 48%,#fff 48%,#fff 52%,transparent 52%);
-    }
-
-.transparent{
-  opacity:0;
-}
-
 #webview-container{
   margin-top:0;
-  width:100%;
-  height:calc(100% - .2rem);
+  height:calc(100vh - 2rem);
   background-image:url(offline/loading.svg);
   background-size:50%;
   background-repeat:no-repeat;
   background-position:50%;
-}
-iframe{
-  position:fixed;
-  bottom:0;
   width:100%;
-  height:calc(100% - 2rem);
-  border:none;
+}
+#webview-container.fullscreen{
+  height:calc(100% - .2rem);
 }
 webview{
   width:100%;
@@ -222,79 +188,37 @@ webview{
 .current-webview{
   display:block;
 }
-
-@keyframes loading{
-  0%{cy:50;r:10;stroke-width:5;opacity:0}
-  50%{opacity:1}
-  100%{cy:125;r:80;stroke-width:20;opacity:0}
-}
-@keyframes wave{
-  0%{box-shadow:0 0 100px #80f}
-  50%{box-shadow:0 0 0px #80f}
-  100%{box-shadow:0 0 100px #80f}
-}
-#circles>*{
-  cx:100;
-  animation:6s loading infinite linear;
-}
-#popup{
-  position:fixed;
+#snackbar{
+  position:absolute;
   width:100vw;
-  height:3rem;
+  height:4rem;
   bottom:-4rem;
   padding:1rem;
   font-size:1.25rem;
   text-align:center;
-  animation:4s popup infinite;
-  animation-play-state:paused;
   cursor:pointer;
+  backdrop-filter:blur(1rem);
+  background-color:var(--background);
 }
-#popup-highlight,#popup-textlight{
-  height:3rem;
-  position:absolute;
-  bottom:-4rem;
-  animation:4s popup infinite,4s popup-lights linear infinite;
-  animation-play-state:paused;
+#snackbar:focus{
+  bottom:0;
 }
-@keyframes popup{
-  0% {bottom:-4rem}
-  10% {bottom:0}
-  90% {bottom:0}
-  100% {bottom:-4rem}
-}
-@keyframes popup-lights{
-  0% {left:-100vw}
-  90% {left:0;opacity:1}
-  100% {left:0;opacity:0}
-}
-#c1{animation-delay:-6s}
-#c2{animation-delay:-4s}
-#c3{animation-delay:-2s}
     </style>
   </head>
   <body>
-    <div id='topchrome'>
-      <div id='topchrome-highlight'></div>
-      <div id='topchrome-tools'>
-        <div id='nav-back'></div>
-        <div id='nav-forward'></div>
-        <form id='search'>
-          <input id='submit' type='submit' data-title='go' value=''>
-          <input id='omnibox' placeholder='Search DuckDuckGo or type in a URL' spellcheck='false'>
-        </form>
-        <div id='tab-container'></div>
-        <div id='tab-new'></div>
-        <div id='close'><div id='close-icon'></div></div>
-      </div>
-      <div id='topchrome-textlight'></div>
+    <div id='topchrome' class='fullscreen'>
+      <div class='button cross chevron' id='nav-back'></div>
+      <div class='button cross chevron' id='nav-forward'></div>
+      <button class='button cross chevron' id='submit' form='omnibox-wrapper' type='submit' data-title='go' value=''></button>
+      <form id='omnibox-wrapper'>
+        <input id='omnibox' placeholder='Search DuckDuckGo or type in a URL' spellcheck='false'>
+      </form>
+      <div id='tab-container'></div>
+      <div class='button hov-expand' id='tab-new'></div>
+      <div class='button hov-expand cross' id='close'></div>
     </div>
-    <div id='webview-container'>
-    </div>
-    <div class='popup' id='popup-highlight'></div>
-    <div class='popup' id='popup'>
-      <span id='popup-text'></span>
-    </div>
-    <div class='popup' id='popup-textlight'></div>
+    <div id='webview-container'></div>
+    <div id='snackbar' tabindex='99'></div>
     <script src='browser.js'></script>
   </body>
 </html>
