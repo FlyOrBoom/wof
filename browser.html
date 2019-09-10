@@ -6,14 +6,16 @@
   --main:#fff;
   --highlight:#80f;
   --halflight:#408;
+  --halflight8:#4088;
   --background:#204;
+  --background8:#2048;
 }
 html,body{
   margin:0;
   width:100vw;
   height:100vh;
   overflow:hidden;
-  font-family:manjari,sans-serif;
+  font-family:quicksand,sans-serif;
   background:var(--background);
   background-image:url(#loading);
   color:var(--main);
@@ -30,37 +32,31 @@ body.blur{
   transition-duration:.1s;
 }
 @font-face {
-	font-family: 'manjari';
-	src: url('fonts/manjari-reg.ttf') format('truetype');
+	font-family: 'quicksand';
+	src: url('fonts/quicksand.ttf') format('truetype');
 	font-weight: normal;
 	font-style: normal;
 }
-@font-face {
-	font-family: 'manjari';
-	src: url('fonts/manjari-bol.ttf') format('truetype');
-	font-weight: bold;
-	font-style: normal;
-}
-#topchrome,#topchrome.fullscreen:hover,#topchrome.fullscreen:focus-within{
+#topchrome{
+  position:absolute;
+  top:0;
   width:100%;
   height:2rem;
   transition-duration:0;
-  margin-top:0;
-  display:flex;
-  background-image:linear-gradient(
-  90deg,
-  var(--background) 33.3%,
-  var(--halflight) 50%,
-  var(--background) 66.7%
-  );
-  background-size:200% 100%;
+  backdrop-filter:blur(1rem);
+  background-color:var(--background8);
 }
-#topchrome.fullscreen{
-  margin-top:-1.8rem;
+#topchrome,#topchrome.fullscreen:hover,#topchrome.fullscreen:focus-within{
 }
+/*#topchrome.fullscreen{*/
+/*  margin-top:-1.8rem;*/
+/*}*/
 #topchrome>*{
   height:inherit;
   width:2rem;
+  display:inline-block;
+  vertical-align:top;
+  flex:none;
 }
   .button.cross{
     background:none;
@@ -79,22 +75,20 @@ body.blur{
     margin-right:-1.2rem;
   }
   #omnibox-wrapper{
-    flex:1 1 0;
-    width:auto;
+    width:calc(50vw - 3.75rem);
+    margin-left:-1rem;
   }
     #omnibox{
       width:100%;
-      padding:1.2rem .25rem;
+      padding:0 .25rem;
       font-size:1.5rem;
       background:none;
       border:none;
       color:inherit;
       height:2rem;
-      margin-left:-1rem;
-      font-family:manjari;
-      font-weight:bold;
+      font-family:quicksand;
+      font-variation-settings: 'wght' 500;
       overflow:hidden;
-      clip-path: inset(0 0 .6rem 0);
     }
       #omnibox:focus{
         min-width:20rem;
@@ -109,55 +103,78 @@ body.blur{
       }
   
   #tab-container{
-    width:auto;
-    max-width:calc(100vw - 30rem);
+    width:calc(50vw - 6rem);
     margin-right:.1rem;
-    margin-left:-1rem;
     overflow-y:hidden;
     overflow-x:scroll;
     white-space:nowrap;
     text-align:right;
     direction:rtl;
+    transform:scale(1,-1);
+    display:inline-flex;
   }
-
-    .tab.button{
-      width:1.75rem;
+    .tab{
+      transform:scale(1,-1);
+      flex:1 0 0;
+      max-width:10rem;
+      min-width:3rem;
       height:1.75rem;
-      margin:.25rem .0875rem;
+      margin:0 .0875rem;
       display:inline-block;
-      border:var(--main) solid .1rem;
-      animation:tabOpen .1s forwards;
-      background-clip:border-box;
+      border-width:.2rem;
+      border-radius:.4rem .4rem 0 0;
+      animation:tabOpen .1s;
+      text-align:left;
+      direction:ltr;
+      font-size:1.25rem;
+      color:var(--background);
+      font-variation-settings: 'wght' 550;
+      backdrop-filter:brightness(5);
+    }
+    .tab::before{
+      display:inline-block;
+      margin-left:.1875rem;
+      width:calc(100% - 1.5rem);
+      transform:translate(0,-.2rem);
+      height:3rem;
+      content:attr(data-domain);
+      overflow:hidden;
+    }
+    .tab::after{
+      display:inline-block;
+      width:1rem;
+      height:1rem;
+      margin:.1875rem;
+      margin-left:-1rem;
+      float:right;
+      background:none;
+      content:'';
+      background-image:linear-gradient(45deg,transparent 46%,var(--halflight) 46%,var(--halflight) 54%,transparent 54%),linear-gradient(315deg,transparent 46%,var(--halflight) 46%,var(--halflight) 54%,transparent 54%);
+      background-size:cover;
+      cursor:pointer;
+      border-radius:.5rem;
     }
       .tab.close{
         animation:tabClose .1s forwards;
       }
-      .tab:hover{
+      .current.tab,.tab:hover{
         background-color:var(--main);
-        right:6rem;
       }
       @keyframes tabOpen{
-        0%{margin-left:-1.5rem}
-        100%{margin-left:.0875rem}
+        0%{margin-left:-1.5rem;opacity:0}
+        100%{margin-left:.0875rem;opacity:.5}
       }
       @keyframes tabClose{
-        0%{margin-left:.0875rem}
-        100%{margin-left:-1.5rem}
+        0%{margin-left:.0875rem;opacity:1}
+        100%{margin-left:-1.5rem;opacity:0}
       }
-      .current.tab{
-        background-color:var(--main);
-      }
-      .current.tab:hover{
-        background-image:linear-gradient(45deg,transparent 46%,var(--halflight) 46%,var(--halflight) 54%,transparent 54%),linear-gradient(135deg,transparent 46%,var(--halflight) 46%,var(--halflight) 54%,transparent 54%);
-      }
-    
+
   .button{
     padding:.3rem;
     background-color:none;
     border:none;
     background-clip:content-box;
     cursor:pointer;
-    flex:none;
   }
   .button:hover{
     opacity:.6;
@@ -168,18 +185,26 @@ body.blur{
   #tab-new{
     background-image:linear-gradient(rgba(0,0,0,0) 48%,var(--main) 48%,var(--main) 52%,rgba(0,0,0,0) 52%),linear-gradient(90deg,rgba(0,0,0,0) 48%,var(--main) 48%,var(--main) 52%,rgba(0,0,0,0) 52%);
   }
+  #mini{
+    background-image:linear-gradient(rgba(0,0,0,0) 48%,var(--main) 48%,var(--main) 52%,rgba(0,0,0,0) 52%);
+  }
+  .right{
+    float:right;
+  }
 #webview-container{
-  margin-top:0;
+  position:absolute;
+  margin-top:2rem;
   height:calc(100vh - 2rem);
   background-image:url(offline/loading.svg);
   background-size:50%;
   background-repeat:no-repeat;
   background-position:50%;
   width:100%;
+  -webkit-box-reflect:above;
 }
-#webview-container.fullscreen{
-  height:calc(100% - .2rem);
-}
+/*#webview-container.fullscreen{*/
+/*  height:calc(50vh - .2rem);*/
+/*}*/
 webview{
   width:100%;
   height:100%;
@@ -203,9 +228,16 @@ webview{
 #snackbar:focus{
   bottom:0;
 }
+#webview-blur{
+  position:fixed;
+  width:100vw;
+  height:4rem;
+  top:2rem;
+}
     </style>
   </head>
   <body>
+    <div id='webview-container'></div>
     <div id='topchrome' class='fullscreen'>
       <div class='button cross chevron' id='nav-back'></div>
       <div class='button cross chevron' id='nav-forward'></div>
@@ -213,11 +245,11 @@ webview{
       <form id='omnibox-wrapper'>
         <input id='omnibox' placeholder='Search DuckDuckGo or type in a URL' spellcheck='false'>
       </form>
-      <div id='tab-container'></div>
-      <div class='button hov-expand' id='tab-new'></div>
-      <div class='button hov-expand cross' id='close'></div>
+      <div class='right button hov-expand cross' id='close'></div>
+      <div class='right button hov-expand' id='mini'></div>
+      <div class='right button hov-expand' id='tab-new'></div>
+      <div class='right' id='tab-container'></div>
     </div>
-    <div id='webview-container'></div>
     <div id='snackbar' tabindex='99'></div>
     <script src='browser.js'></script>
   </body>
