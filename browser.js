@@ -1,24 +1,31 @@
-var doc = document,
+const doc = document,
     omnibox = doc.getElementById("omnibox"),
     search = doc.getElementById("omnibox-wrapper"),
     navBack = doc.getElementById("nav-back"),
     navForward = doc.getElementById("nav-forward"),
     webviewContainer = doc.getElementById('webview-container'),
-    webview = [],
-    webviewhold = [],
+    draggable = doc.getElementById('draggable'),
     tabContainer = doc.getElementById('tab-container'),
-    tab = [],
-    tabhold = [], //temp storage for rearranging tabs
     tabNew = doc.getElementById('tab-new'),
-    current = 0,
     topchrome = doc.getElementById("topchrome"),
     closeWindow = doc.getElementById('close'),
     miniWindow = doc.getElementById('mini'),
+    maxWindow = doc.getElementById('max'),
     snackbar = doc.getElementById('snackbar'),
-    tick = {invert:0,fog:0},
     rem = parseFloat(getComputedStyle(doc.documentElement).fontSize),
-    root = doc.documentElement;
+    discordwrapper = doc.getElementById('discord-wrapper'),
+    discord = doc.getElementById('discord'),
+    root = doc.documentElement,
+    lightbar = doc.getElementById('lightbar'),
+    discordShadow = doc.getElementById('discord-shadow');
 
+let webview = [],
+    webviewhold = [],
+    tab = [],
+    tabhold = [], //temp storage for rearranging tabs
+    tick = {invert:0,fog:0,discord:0,chat:0},
+    app = chrome.app.window.current(),
+    current = 0;
 
 function setCurrent(k){
   console.log('function setCurrent('+k+')');
@@ -36,6 +43,13 @@ function setCurrent(k){
       }
     }
   }
+}
+
+function isMaximized(){
+  return window.screen.width<=(window.innerWidth+100)||window.screen.height<=(window.innerHeight+100);
+}
+function isFullscreen(){
+  return window.screen.width===window.innerWidth&&window.screen.height===window.innerHeight;
 }
 
 function omniUrl(inputSrc){
@@ -94,24 +108,42 @@ function newTab(url){
   });
   
   webview[j].onmousemove = function(e){
-    if(!(snackbar.hasFocus())){
+    omnibox.blur();
+    if(snackbar!==document.activeElement){
       this.focus();
     }
   };
   webview[j].addEventListener('loadstart',function(e){
     j=webview.indexOf(this);
+    lightbar.classList='load';
     if(e.isTopLevel){
-      // loadwrapper.classList.add('loading');
       tab[j].setAttribute('data-domain',matchUrl(e.url));
       omnibox.focus();
       if(j===current){
         omniUrl(e.url);
+        webviewContainer.style.backgroundColor='#fff0';
+        webviewContainer.style.backgroundImage='url(offline/loading.svg)';
+      }
+    }
+  });
+  webview[j].addEventListener('loadcommit',function(e){
+    j=webview.indexOf(this);
+    if(e.isTopLevel){
+      tab[j].setAttribute('data-domain',matchUrl(e.url));
+      omnibox.focus();
+      if(j===current){
+        omniUrl(e.url);
+        webviewContainer.style.backgroundColor='#fff';
+        webviewContainer.style.backgroundImage='none';
       }
     }
   });
   webview[j].addEventListener('loadstop',function(){
     j=webview.indexOf(this);
-    this.insertCSS({code:'body::before{background-color:#fff}'});
+    lightbar.classList='loaded';
+    webviewContainer.style.backgroundColor='#fff';
+    webviewContainer.style.backgroundImage='none';
+    this.executeScript({file:'blur.js'});
     omniUrl(webview[current].src);
     this.currentUrl=this.src;
     tab[j].setAttribute('data-domain',matchUrl(this.src));
@@ -181,17 +213,27 @@ search.onsubmit = function() {
   }
   omnibox.value=e;
 };
-window.onmousemove = function (e){
+topchrome.onmousemove = function (e){
   topchrome.style.backgroundPosition = (100*(window.innerWidth-e.pageX)/window.innerWidth)+'%';
-  if(!(snackbar.hasFocus())){
+  if(snackbar!==document.activeElement){
     omnibox.focus();
   }
 };
 miniWindow.onclick = function(){
-  chrome.app.window.current().minimize();
-}
+  app = chrome.app.window.current();
+  app.minimize();
+};
+maxWindow.onclick = function(){
+  app = chrome.app.window.current();
+  if(isMaximized()){
+    app.restore();
+  }else{
+    app.maximize();
+  }
+};
 closeWindow.onclick = function(){
-  window.close();
+  app = chrome.app.window.current();
+  app.close();
 };
 
 //keyboard shortcuts
@@ -219,38 +261,69 @@ function(e){
       webview[current].src='offline/home.html';
     }else if(e.key==='/'){
       if(tick.fog){
-        doc.body.classList.remove('blur');
+        topchrome.classList.remove('blur');
+        for(let i = 0;i<webview.length;i++){
+          webview[i].executeScript({file:'blurfalse.js'});
+        }
         tick.fog--;
       }else{
-        doc.body.classList.add('blur');
+        topchrome.classList.add('blur');
+        for(let i = 0;i<webview.length;i++){
+          webview[i].executeScript({file:'blurtrue.js'});
+        }
         tick.fog++;
       }
-    }else if(e.key==='i'){
-      if(tick.invert){
-        root.style.setProperty('--main','#fff');
-        root.style.setProperty('--highlight','#80f');
-        root.style.setProperty('--halflight','#408');
-        root.style.setProperty('--background','#204');
-        tick.invert--;
+    }else if(e.key==='d'){
+      if(tick.chat){
+        discordwrapper.style.display='none';
+        tick.chat--;
       }else{
-        root.style.setProperty('--main','#204');
-        root.style.setProperty('--highlight','#648');
-        root.style.setProperty('--halflight','#fff');
-        root.style.setProperty('--background','#fff');
-        tick.invert++;
+        discordwrapper.style.display='block';
+        tick.chat++;
       }
     }
   }
 },false);
 
-setInterval(function checkFullscreen(){
+setInterval(function(){
   if(topchrome.classList){
-    if(window.screen.width===window.innerWidth&&window.screen.height===window.innerHeight){
+    if(isFullscreen()){
       topchrome.classList.add('fullscreen');
+      draggable.classList.add('fullscreen');
       webviewContainer.classList.add('fullscreen');
     }else{
       topchrome.classList.remove('fullscreen');
+      draggable.classList.remove('fullscreen');
       webviewContainer.classList.remove('fullscreen');
     }
   }
-},10);
+  webview[current].style.WebkitBoxReflect='above';
+},100);
+
+discord.addEventListener('loadstop',function(){
+  if(this.src==='https://discordapp.com/login'){
+    this.classList.add('login');
+    discordShadow.classList.add('login');
+  }else{
+    this.classList.remove('login');
+    discordShadow.classList.remove('login');
+    tick.discord=0;
+  }
+});
+discordShadow.onclick=function(){
+  console.log('click');
+  if(tick.discord){
+    this.classList.remove('menu');
+    discord.classList.remove('menu');
+    tick.discord=0;
+  }else{
+    this.classList.add('menu');
+    discord.classList.add('menu');
+    tick.discord=1;
+  }
+}
+omnibox.onfocus=function(){
+  if(omnibox.value){
+    omnibox.select();
+  }
+}
