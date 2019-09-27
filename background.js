@@ -1,7 +1,7 @@
 chrome.app.runtime.onLaunched.addListener(function() {
   chrome.app.window.create('browser.html', {
     id:String(Math.random()),
-    state:'fullscreen',
+    state:'maximized',
     frame:'none',
     innerBounds: {
         minWidth: 400,

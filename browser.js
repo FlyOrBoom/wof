@@ -1,6 +1,6 @@
 const doc = document,
     omnibox = doc.getElementById("omnibox"),
-    search = doc.getElementById("omnibox-wrapper"),
+    navSubmit = doc.getElementById("nav-submit"),
     navBack = doc.getElementById("nav-back"),
     navForward = doc.getElementById("nav-forward"),
     webviewContainer = doc.getElementById('webview-container'),
@@ -23,7 +23,7 @@ let webview = [],
     webviewhold = [],
     tab = [],
     tabhold = [], //temp storage for rearranging tabs
-    tick = {invert:0,fog:0,discord:0,chat:0},
+    tick = {invert:0,fog:0,discord:0,chat:0,rotation:0,theme:0},
     app = chrome.app.window.current(),
     current = 0;
 
@@ -90,6 +90,7 @@ function newTab(url){
   // webview[j].setAttribute('partition',('trusted-'+(Math.random()*10)));
   webview[j].setAttribute('partition','trusted');
   webview[j].currentUrl='';
+  webview[j].tabindex=j;
   webview[j].setAttribute('allowtransparency','on');
   webviewContainer.appendChild(webview[j]);
 
@@ -105,14 +106,12 @@ function newTab(url){
     }else{
       setCurrent(j);
     }
+    omnibox.focus();
+  });
+  tab[j].addEventListener('dblclick',function(e){
+      tab[j].setAttribute('data-domain','homework');
   });
   
-  webview[j].onmousemove = function(e){
-    omnibox.blur();
-    if(snackbar!==document.activeElement){
-      this.focus();
-    }
-  };
   webview[j].addEventListener('loadstart',function(e){
     j=webview.indexOf(this);
     lightbar.classList='load';
@@ -152,16 +151,32 @@ function newTab(url){
     e.request.allow();
   });
   webview[j].addEventListener("newwindow", function(e) {
+    topchrome.classList.add('focus');
+    webviewContainer.classList.remove('focus');
     e.window.discard();
     snackbar.innerHTML='Open '+String(e.targetUrl).substr(0,50)+' in new tab? Click to confirm.';
     snackbar.focus({preventScroll:true});
     setTimeout(function(){
-      snackbar.blur();
+      omnibox.focus();
     },4000);
     snackbar.onclick=function(){
       newTab();
       webview[current].src=e.targetUrl;
-      snackbar.blur();
+      omnibox.focus();
+    };
+  });
+  webview[j].addEventListener("dialog", function(e) {
+    topchrome.classList.add('focus');
+    webviewContainer.classList.remove('focus');
+    snackbar.innerHTML=e.messageText;
+    snackbar.focus({preventScroll:true});
+    setTimeout(function(){
+      omnibox.focus();
+      e.dialog.cancel();
+    },4000);
+    snackbar.onclick=function(){
+      e.dialog.ok();
+      omnibox.focus();
     };
   });
   
@@ -180,10 +195,12 @@ function clearAllHistory(){
   for(let i=0;i<tab.length;i++){
     webview[i].clearData(
       {since:0},
-      {appcache:true,cache:true,cookies:true,sessionCookies:true,persistentCookies:true,fileSystems:true,indexedDB:true,localStorage:true,webSQL:true},
-      window.close()
+      {appcache:true,cache:true,cookies:true,sessionCookies:true,persistentCookies:true,fileSystems:true,indexedDB:true,localStorage:true,webSQL:true}
     );
   }
+  topchrome.remove();
+  setTimeout(function(){webview[current].remove()},300);
+  setTimeout(function(){window.close()},500);
 }
 
 newTab('offline/home.html');
@@ -196,9 +213,8 @@ navForward.onclick = function(){
   webview[current].forward();
 };
 
-tabNew.onclick = function(){newTab();webview[current].src='offline/home.html';};
-search.onsubmit = function() {
-  var e = omnibox.value;
+function submit(){
+  let e = omnibox.value;
   if(e){
     if(!(e.includes("."))||e.includes(" ")){
       e = "duckduckgo.com/?q=" + e + "&kp=-2";
@@ -213,12 +229,14 @@ search.onsubmit = function() {
   }
   omnibox.value=e;
 };
-topchrome.onmousemove = function (e){
-  topchrome.style.backgroundPosition = (100*(window.innerWidth-e.pageX)/window.innerWidth)+'%';
-  if(snackbar!==document.activeElement){
-    omnibox.focus();
+
+tabNew.onclick = function(){newTab();webview[current].src='offline/home.html';};
+navSubmit.onclick=submit();
+omnibox.onkeydown=function(e){
+  if(e.key==='Enter'){
+    submit();
   }
-};
+}
 miniWindow.onclick = function(){
   app = chrome.app.window.current();
   app.minimize();
@@ -235,57 +253,82 @@ closeWindow.onclick = function(){
   app = chrome.app.window.current();
   app.close();
 };
-
 //keyboard shortcuts
 window.addEventListener('keydown',
 function(e){
   if(e.altKey){
-    if(e.key==='w'){
-      if(e.ctrlKey){
-        clearAllHistory();
-      }else{
-       closeTab(current);
-      }
-    }else if(e.key==='n'){
-      chrome.app.window.create('browser.html', {
-        id:String(Math.random()),
-        state:'fullscreen',
-        frame:'none',
-        innerBounds: {
-            minWidth: 400,
-            minHeight: 300
+    switch(e.key){
+      case 'w':
+        if(e.ctrlKey){
+          clearAllHistory();
+        }else{
+         closeTab(current);
         }
-      });
-    }else if(e.key==='t'){
-      newTab();
-      webview[current].src='offline/home.html';
-    }else if(e.key==='/'){
-      if(tick.fog){
-        topchrome.classList.remove('blur');
-        for(let i = 0;i<webview.length;i++){
-          webview[i].executeScript({file:'blurfalse.js'});
+      break;
+      case 'n':
+        chrome.app.window.create('browser.html', {
+          id:String(Math.random()),
+          state:'maximized',
+          frame:'none',
+          innerBounds: {
+              minWidth: 400,
+              minHeight: 300
+          }
+        });
+      break;
+      case 't':
+        newTab();
+        webview[current].src='offline/home.html';
+      break;
+      case '/':
+        if(tick.fog){
+          topchrome.classList.remove('blur');
+          for(let i = 0;i<webview.length;i++){
+            webview[i].executeScript({file:'blurfalse.js'});
+          }
+          tick.fog--;
+        }else{
+          topchrome.classList.add('blur');
+          for(let i = 0;i<webview.length;i++){
+            webview[i].executeScript({file:'blurtrue.js'});
+          }
+          tick.fog++;
         }
-        tick.fog--;
-      }else{
-        topchrome.classList.add('blur');
-        for(let i = 0;i<webview.length;i++){
-          webview[i].executeScript({file:'blurtrue.js'});
+      break;
+      case 'd':
+        if(tick.chat){
+          discordwrapper.style.display='none';
+          tick.chat--;
+        }else{
+          discordwrapper.style.display='block';
+          tick.chat++;
         }
-        tick.fog++;
-      }
-    }else if(e.key==='d'){
-      if(tick.chat){
-        discordwrapper.style.display='none';
-        tick.chat--;
-      }else{
-        discordwrapper.style.display='block';
-        tick.chat++;
-      }
+      break;
+      case 'i':
+        switch(tick.theme){
+          case 0:
+            topchrome.classList.add('black');
+          break;
+          case 1:
+            topchrome.classList.remove('black');
+            topchrome.classList.add('white');
+          break;
+          case 2:
+            topchrome.classList.remove('white');
+            topchrome.classList.add('rgb');
+          break;
+          case 3:
+            topchrome.classList.remove('rgb');
+            tick.theme=-1;
+          break;
+        }
+        tick.theme++;
+      break;
     }
   }
 },false);
 
-setInterval(function(){
+window.addEventListener('resize',function(){
   if(topchrome.classList){
     if(isFullscreen()){
       topchrome.classList.add('fullscreen');
@@ -297,8 +340,12 @@ setInterval(function(){
       webviewContainer.classList.remove('fullscreen');
     }
   }
-  webview[current].style.WebkitBoxReflect='above';
-},100);
+});
+
+topchrome.style.setProperty('--rotation',tick.rotation+'deg');
+setInterval(function(){
+  tick.rotation+=1;
+},10);
 
 discord.addEventListener('loadstop',function(){
   if(this.src==='https://discordapp.com/login'){
@@ -310,6 +357,26 @@ discord.addEventListener('loadstop',function(){
     tick.discord=0;
   }
 });
+topchrome.onmouseenter=function(){
+  this.classList.add('focus');
+  webviewContainer.classList.remove('focus');
+  if(snackbar!==doc.activeElement){
+    omnibox.select();
+  }
+};
+omnibox.onmouseenter=function(){
+  this.savevalue=this.value;
+  this.value=this.value+' ';
+  this.value=this.savevalue;
+};
+webviewContainer.onmouseenter=function(){
+  this.classList.add('focus');
+  topchrome.classList.remove('focus');
+  omnibox.blur();
+  if(snackbar!==document.activeElement){
+    this.focus();
+  }
+};
 discordShadow.onclick=function(){
   console.log('click');
   if(tick.discord){
@@ -321,9 +388,4 @@ discordShadow.onclick=function(){
     discord.classList.add('menu');
     tick.discord=1;
   }
-}
-omnibox.onfocus=function(){
-  if(omnibox.value){
-    omnibox.select();
-  }
-}
+};
